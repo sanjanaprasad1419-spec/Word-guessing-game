@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Word Guessing Game</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f5fa;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .container {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px #ccc;
+      margin-top: 40px;
+      padding: 32px;
+      max-width: 360px;
+      width: 100%;
+      text-align: center;
+    }
+    h1 {
+      color: #333;
+      margin-bottom: 16px;
+    }
+    #hint {
+      font-size: 1.1em;
+      color: #006ab3;
+      margin-bottom: 10px;
+    }
+    .blanks {
+      font-size: 2em;
+      letter-spacing: 0.8em;
+      margin: 20px 0;
+    }
+    #message {
+      color: #c12d39;
+      font-weight: bold;
+      margin: 12px 0 4px;
+    }
+    #guessed-letters {
+      margin-top: 10px;
+      color: #555;
+    }
+    input[type="text"] {
+      padding: 6px;
+      font-size: 1em;
+      width: 60px;
+      text-align: center;
+      margin-right: 6px;
+    }
+    button {
+      padding: 7px 16px;
+      background: #006ab3;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      font-size: 1em;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #2186d5;
+    }
+    #restart-btn {
+      margin-top: 22px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Word Guessing Game</h1>
+    <div id="hint"></div>
+    <div class="blanks" id="word-display"></div>
+    <form id="guess-form" autocomplete="off">
+      <input type="text" maxlength="1" id="guess-input" required pattern="[A-Za-z]">
+      <button type="submit">Guess</button>
+    </form>
+    <div id="message"></div>
+    <div id="guessed-letters"></div>
+    <button id="restart-btn" onclick="startGame()">Play Again</button>
+  </div>
+  
+  <script>
+    const words = [
+      { word: 'science', hint: "Field of systematic study of structure and behavior of physical/natural world" },
+      { word: 'planet', hint: "Large celestial body orbiting a star" },
+      { word: 'javascript', hint: "Programming language for web development" },
+      { word: 'guitar', hint: "String instrument popular in music" },
+      { word: 'elephant', hint: "Largest land animal" },
+      { word: 'rainbow', hint: "Colorful arc seen after rainfall" },
+      { word: 'ocean', hint: "Large body of saltwater" },
+      { word: 'mountain', hint: "High elevation of land" },
+      { word: 'library', hint: "Place full of books" },
+      { word: 'chocolate', hint: "Sweet treat made from cacao" }
+    ];
+
+    let currentWord = '', hint = '', displayArr = [], guessedLetters = [], remainingLetters = 0, gameOver = false;
+
+    function pickWord() {
+      const idx = Math.floor(Math.random() * words.length);
+      currentWord = words[idx].word.toUpperCase();
+      hint = words[idx].hint;
+    }
+
+    function startGame() {
+      pickWord();
+      displayArr = Array(currentWord.length).fill('_');
+      guessedLetters = [];
+      remainingLetters = currentWord.length;
+      gameOver = false;
+      // Update UI
+      document.getElementById('hint').textContent = "Hint: " + hint;
+      document.getElementById('word-display').textContent = displayArr.join(' ');
+      document.getElementById('message').textContent = "";
+      document.getElementById('guessed-letters').textContent = "Guessed letters: (none)";
+      document.getElementById('restart-btn').style.display = 'none';
+      document.getElementById('guess-input').disabled = false;
+      document.getElementById('guess-form').style.display = '';
+      document.getElementById('guess-input').value = "";
+      document.getElementById('guess-input').focus();
+    }
+
+    document.getElementById('guess-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      if (gameOver) return;
+      const input = document.getElementById('guess-input');
+      let letter = input.value.trim().toUpperCase();
+      input.value = '';
+      if (!letter.match(/^[A-Z]{1}$/)) {
+        document.getElementById('message').textContent = "Enter a valid single letter!";
+        return;
+      }
+      // Check already guessed
+      if (guessedLetters.includes(letter)) {
+        document.getElementById('message').textContent = `You already guessed "${letter}".`;
+        return;
+      }
+      guessedLetters.push(letter);
+
+      // Reveal correct letters
+      let found = false, count = 0;
+      for (let i = 0; i < currentWord.length; i++) {
+        if (currentWord[i] === letter && displayArr[i] === '_') {
+          displayArr[i] = letter;
+          found = true;
+          count++;
+        }
+      }
+      if (found) {
+        remainingLetters -= count;
+        document.getElementById('message').textContent = `Good job! "${letter}" is in the word.`;
+      } else {
+        document.getElementById('message').textContent = `Oops! "${letter}" isn't in the word.`;
+      }
+
+      // Update displays
+      document.getElementById('word-display').textContent = displayArr.join(' ');
+      document.getElementById('guessed-letters').textContent = "Guessed letters: " + guessedLetters.join(', ');
+
+      // Win/lose check
+      if (!displayArr.includes('_')) {
+        document.getElementById('message').textContent = `🎉 Congratulations! You guessed "${currentWord}"!`;
+        gameOver = true;
+        document.getElementById('guess-input').disabled = true;
+        document.getElementById('restart-btn').style.display = '';
+        document.getElementById('guess-form').style.display = 'none';
+      }
+    });
+
+    // Start first game
+    startGame();
+  </script>
+</body>
+</html>
